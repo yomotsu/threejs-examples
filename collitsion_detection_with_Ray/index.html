@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>collision detection with Ray in THREE.js</title>
+<style>
+body{
+	font-family:Arial, Helvetica, sans-serif;
+	background:#333;
+}
+canvas{
+	position:absolute;
+	top:0;
+	left:0;
+}
+</style>
+<script src="../lib/Three_r48.js"></script>
+<script>
+window.addEventListener('DOMContentLoaded', (function(){
+	
+	var width = window.innerWidth;
+	var height = window.innerHeight;
+	
+	var scene = new THREE.Scene();
+	
+	var camera = new THREE.PerspectiveCamera( 40, width / height, 1, 1000 );
+	camera.position.set(30, 10, -10);
+	camera.lookAt( scene.position );
+	scene.add( camera );
+	
+	var light = new THREE.DirectionalLight( 0xffffff, 1.5 );
+	light.position.set( 1, 1, -1 ).normalize();
+	scene.add( light );
+	
+	var renderer = new THREE.WebGLRenderer();
+	renderer.setSize( width, height );
+	document.body.appendChild( renderer.domElement );
+	
+	var collidersArray  = [];
+	var collidersLength = 5;
+	for(var i = 0; i < collidersLength; i++){
+		collidersArray[i] = new THREE.Mesh(
+			new THREE.CubeGeometry(6, 6, 1),
+			new THREE.MeshLambertMaterial( { color: 0xffffff } )
+		);
+		collidersArray[i].position.z = i * 6 - collidersLength;
+		scene.add( collidersArray[i] );
+	}
+	
+	var sphere = new THREE.Mesh(
+		new THREE.SphereGeometry(.5, 16, 16),
+		new THREE.MeshLambertMaterial( { color: 0x00ffff } )
+	);
+	sphere.position.set(0, 0, -10);
+	scene.add( sphere );
+	
+	var oldIntersectsLength;
+	function collisionDetection(){
+		var sphereDirectionVec3 = new THREE.Vector3(0, 0, 1);
+		var ray = new THREE.Ray(sphere.position, sphereDirectionVec3);
+		var intersects = ray.intersectObjects(collidersArray);
+		
+		if(intersects.length > 0){
+			var x1 = sphere.position.x;
+			var y1 = sphere.position.y;
+			var z1 = sphere.position.z;
+			var x2 = intersects[ 0 ].point.x;
+			var y2 = intersects[ 0 ].point.y;
+			var z2 = intersects[ 0 ].point.z;
+			var distance = Math.sqrt( Math.pow( x1 - x2, 2 ) + Math.pow( y1 - y2, 2 ) + Math.pow( z1 - z2, 2 ) );
+			if(distance <= sphere.boundRadius){
+				intersects[ 0 ].object.material.color.setHex( 0xff0000 );
+				document.querySelector('#log').innerHTML += 'hit!<br>';
+			}
+		}
+		if(oldIntersectsLength > intersects.length){
+			document.querySelector('#log').innerHTML += 'passed<br>';
+		}
+		oldIntersectsLength = intersects.length;
+	}
+	
+	function init(){
+		sphere.position.z = -10;
+		for(var i = 0; i < collidersLength; i++){
+			collidersArray[ i ].material.color.setHex( 0xffffff);
+		}
+		document.querySelector('#log').innerHTML = '';
+	}
+	
+	(function(){
+		if(sphere.position.z < 30){
+			sphere.position.z += .1;
+		}else{
+			init();
+		}
+		collisionDetection();
+		renderer.render( scene, camera );
+		requestAnimationFrame( arguments.callee);
+	})();
+	
+}), false);
+</script>
+</head>
+<body>
+	<div style="position:absolute; z-index:10; background:rgba(0,0,0,.5); padding:10px; color:#fff;">
+	FYI: collision is got fired a few times at a once, due to keeping to move and the sphere's radius.
+	</div>
+	<div style="position:absolute; top:50px; z-index:10; background:rgba(0,0,0,.5); padding:10px; color:#fff;" id="log"></div>
+
+</body>
+</html>

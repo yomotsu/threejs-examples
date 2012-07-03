@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Examples created by Yomotsu using THREE.js</title>
+<style>
+@import url(http://fonts.googleapis.com/css?family=Dosis:400,800);
+
+html{
+	font-size:16px;
+	font-family: 'Dosis', sans-serif;
+	background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAANCAAAAACBJWHFAAAAk0lEQVQIHQXBwWEAMQgDMPZftU0wGBPofSpZcnV6qrxGt1bPwJvfu6yU546rDcFNviN4rba87I548/WPr4rsvtbIjsyQEIqmy15eMNHf9LkV6LHYcY8p1tt7ME8WVcRGMRVJJWmEa9tRSJ+/vlHmXHV8OMge9OBYSpmh8VJXB5/bxq0o5P4BBBGfzQgPGtYQ+cutf1ga3nO49mrYAAAAAElFTkSuQmCC);
+}
+body{
+	margin:0;
+	padding:0 100px 100px;
+}
+@media(max-width:400px){
+	body{padding:0 10px 100px;}
+}
+nav{
+	color:#999;
+	margin:0 -100px 30px;
+	padding:5px;
+	background:-webkit-linear-gradient(#3D3D3E, #2A2A2A);
+	background:-moz-linear-gradient(#3D3D3E, #2A2A2A);
+	background:-ms-linear-gradient(#3D3D3E, #2A2A2A);
+	background:-o-linear-gradient(#3D3D3E, #2A2A2A);
+	background:linear-gradient(#3D3D3E, #2A2A2A);
+	border-bottom:1px solid #000;
+	
+}
+nav ul{
+	text-align:right;
+	list-style:none;
+	margin:0;
+	padding:0;
+}
+nav li{
+	display:inline;
+	margin:0 1em 0 0;
+	padding:0;
+	text-shadow: 0 1px 0 #000;
+}
+nav li a{
+	color:inherit;
+	text-decoration:none;
+	-webkit-transition:all .2s;
+	   -moz-transition:all .2s;
+	    -ms-transition:all .2s;
+	     -o-transition:all .2s;
+	        transition:all .2s;
+}
+nav li a:hover{
+	color:#fff;
+}
+h1{
+	font-size:200%;
+	font-weight:bold;
+	text-shadow:1px 1px 0px #fff, 1px 2px 0px #bbb;
+	display: table;
+	margin:0 0 10px;
+}
+h1:after{
+	content: '';
+	display: block;
+	margin-top: .2em;
+	border-top:1px solid #ccc;
+	border-bottom: 1px solid #fff;
+}
+
+.contents ul{
+	font-size:0;
+	margin:0;
+	padding:0;
+	list-style:none;
+}
+
+.contents ul:after{
+	content:'';
+	display:table;
+	clear:both;
+}
+
+.contents li{
+	font-size:1rem;
+	vertical-align:top;
+	display:inline-block;
+	position:relative;
+	width:210px;
+	margin:0 10px 10px 0;
+	padding:0;
+	list-style:none;
+	-webkit-transform-style:preserve-3d;
+	   -moz-transform-style:preserve-3d;
+	    -ms-transform-style:preserve-3d;
+	     -o-transform-style:preserve-3d;
+	        transform-style:preserve-3d;
+	-webkit-perspective: 1000px;
+	   -moz-perspective: 1000px;
+	    -ms-perspective: 1000px;
+	     -o-perspective: 1000px;
+	        perspective: 1000px;
+}
+.contents li::after{
+	content:'';
+	display:block;
+	position:absolute;
+	left:0;
+	right:0;
+	top:0;
+	bottom:0;
+	background:#333;
+}
+
+.contents a{
+	color:#333;
+	text-shadow: 0 1px 0 #fff;
+	text-decoration:none;
+	display:block;
+	position:relative;
+	z-index:3;
+	background:url(_bg.png);
+	-webkit-transform:translate3d(0, 0, 0);
+	   -moz-transform:translate3d(0, 0, 0);
+	    -ms-transform:translate3d(0, 0, 0);
+	     -o-transform:translate3d(0, 0, 0);
+	        transform:translate3d(0, 0, 0);
+	-webkit-transform-origin: 50% 50%;
+	   -moz-transform-origin: 50% 50%;
+	    -ms-transform-origin: 50% 50%;
+	     -o-transform-origin: 50% 50%;
+	        transform-origin: 50% 50%;
+	-webkit-transition:color .1s linear;
+	   -moz-transition:color .1s linear;
+	    -ms-transition:color .1s linear;
+	     -o-transition:color .1s linear;
+	        transition:color .1s linear;
+}
+
+.contents a:hover{
+	color:#00afcc;
+}
+
+.contents a.mouseon{
+	-webkit-transition:all .1s linear;
+	   -moz-transition:all .1s linear;
+	    -ms-transition:all .1s linear;
+	     -o-transition:all .1s linear;
+	        transition:all .1s linear;
+}
+.contents a.mouseout{
+	-webkit-transition:all .2s linear;
+	   -moz-transition:all .2s linear;
+	    -ms-transition:all .2s linear;
+	     -o-transition:all .2s linear;
+	        transition:all .2s linear;
+}
+
+.contents a:hover img{
+	border:1px solid #000;
+}
+.contents img{
+	display:block;
+	padding:4px;
+	background:#fff;
+	border:1px solid #ddd;
+	-webkit-transition:all .1s linear;
+	   -moz-transition:all .1s linear;
+	    -ms-transition:all .1s linear;
+	     -o-transition:all .1s linear;
+	        transition:all .1s linear;
+}
+</style>
+<script src="http://code.jquery.com/jquery-1.8b1.js"></script>
+<script>
+(function($, window, document){
+	$(function(){
+		var $outer  = $('.contents li');
+		var $target = $outer.find('a');
+		
+		var mouseX = mouseY = 0;
+		
+		$(document).on('mousemove', function (e) {
+			mouseX = e.pageX;
+			mouseY = e.pageY;
+		});
+		
+		$target.each(function(){
+			
+			var $that = $(this);
+			var onmouse = false;
+			
+			$that.on('mousemove', effect);
+			$that.on('mouseout', removeEffect);
+			
+			function effect(){
+				var rotateMax = 20;
+				var width   = $that.width();
+				var height  = $that.height();
+				var left    = $that.offset().left;
+				var top     = $that.offset().top;
+				var vectorX =   ((mouseX - left) / width ) * 2 - 1;
+				var vectorY = - ((mouseY - top)  / height) * 2 + 1;
+				var rotateX = 'rotateX(' + (vectorY * rotateMax * -1) + 'deg) ';
+				var rotateY = 'rotateY(' + (vectorX * rotateMax * -1) + 'deg) ';
+				var shadow = (vectorX * 10) + 'px ' + (vectorY * -10) + 'px 10px 0 rgba(0,0,0,.5)'
+				$that.css({'transform': rotateX + rotateY + 'translate3d(0, 0, 20px)', 'box-shadow':shadow});
+				if(!onmouse){
+					onmouse = !onmouse;
+					$that.addClass('mouseon').removeClass('mouseout');
+					setTimeout(function(){
+						$that.removeClass('mouseon');
+					}, 100);
+				}
+			}
+			
+			function removeEffect(){
+				onmouse = false;
+				$that.css({'transform': 'translate3d(0, 0, 0)', 'box-shadow':'none'});
+				$that.removeClass('mouseon').addClass('mouseout');
+			}
+		});
+			
+	});
+	
+})(jQuery, window, document);
+</script>
+</head>
+<body>
+<header>
+	<nav>
+		<ul>
+			<li><a href="github.com/yomotsu/">github</a></li>
+			<li><a href="http://twitter.com/yomotsu/">twitter</a></li>
+			<li><a href="http://yomotsu.net">blog</a></li>
+			<li><a href="http://www.pxgrid.com">PixelGrid</a></li>
+		</ul>
+	</nav>
+</header>
+
+<h1>Examples created by Yomotsu using THREE.js</h1>
+<div class="contents">
+	<ul>
+	
+		<li><a href="./basic/">
+			<img src="./basic/index.jpg" alt="" width="200" height="150">
+			basic cube 
+		</a></li>
+		
+		<li><a href="./basic_with_textures">
+			<img src="./basic_with_textures/index.jpg" alt="" width="200" height="150">
+			basic cube with textures
+		</a></li>
+		
+		<li><a href="./load_collada/">
+			<img src="./load_collada/index.jpg" alt="" width="200" height="150">
+			load collada model
+		</a></li>
+		
+		<li><a href="./load_converted_MMD_models/">
+			<img src="./load_converted_MMD_models/index.jpg" alt="" width="200" height="150">
+			load converted MMD models
+		</a></li>
+		
+		<li><a href="./ray_basic/">
+			<img src="./ray_basic/index.jpg" alt="" width="200" height="150">
+			ray_basic
+		</a></li>
+		
+		<li><a href="./ray_basic2/">
+			<img src="./ray_basic2/index.jpg" alt="" width="200" height="150">
+			ray_basic2
+		</a></li>
+		
+		<li><a href="./collitsion_detection_with_Ray/">
+			<img src="./collitsion_detection_with_Ray/index.jpg" alt="" width="200" height="150">
+			collitsion_detection_with_Ray
+		</a></li>
+		
+		<li><a href="./md2/">
+			<img src="./md2/index.jpg" alt="" width="200" height="150">
+			MD2 model with actions
+		</a></li>
+		
+		<li><a href="./tps/">
+			<img src="./tps/index.jpg" alt="" width="200" height="150">
+			kind of a TPS game
+		</a></li>
+		
+		<li><a href="./basic_triangle/">
+			<img src="./basic_triangle/index.jpg" alt="" width="200" height="150">
+			triangle which is created from Vertex
+		</a></li>
+		
+		<li><a href="./texture_using_2Dcanvas/">
+			<img src="./texture_using_2Dcanvas/index.jpg" alt="" width="200" height="150">
+			texture_using_2Dcanvas
+		</a></li>
+		
+		<li><a href="./svg_to_line/">
+			<img src="./svg_to_line/index.jpg" alt="" width="200" height="150">
+			SVG to THREE.Line()
+		</a></li>
+		
+		<li><a href="./cannonjs_box/">
+			<img src="./cannonjs_box/index.jpg" alt="" width="200" height="150">
+			cannonjs_box
+		</a></li>
+		
+		<li><a href="./cannonjs_sphere/">
+			<img src="./cannonjs_sphere/index.jpg" alt="" width="200" height="150">
+			cannonjs_sphere
+		</a></li>
+		
+		<li><a href="./physijs_tetris/">
+			<img src="./physijs_tetris/index.jpg" alt="" width="200" height="150">
+			physijs_tetris
+		</a></li>
+	</ul>
+</div>
+
+</body>
+</html>

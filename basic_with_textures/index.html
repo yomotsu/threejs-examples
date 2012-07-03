@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>basic2</title>
+<style>
+body {
+	background: #333;
+	overflow:hidden;
+}
+</style>
+<script src="../lib/Three_r49.js"></script>
+<script>
+window.addEventListener("DOMContentLoaded", function(){
+	
+	var viewAngle = 80;
+	var width  = window.innerWidth;
+	var height = window.innerHeight;
+	var near   = 1;
+	var far    = 1000;
+	
+	// renderer (canvas)
+	var renderer = new THREE.WebGLRenderer();
+	renderer.setSize( width, height );
+	document.body.appendChild( renderer.domElement );
+	
+	// create a scene
+	var scene = new THREE.Scene();
+	
+	// set a camera
+	var aspect = width / height;
+	var camera = new THREE.PerspectiveCamera( viewAngle, aspect, near, far );
+	camera.position.z = 500;
+	scene.add( camera );
+	
+	// set a directional light
+	var directionalLight = new THREE.DirectionalLight( 0xffffff, 5 );
+	directionalLight.position.z = 3;
+	scene.add( directionalLight );
+
+	// cube geometry (200 x 200 x 200 and each segments) with textures;
+	var geometry = new THREE.CubeGeometry(200, 200, 200, 1, 1, 1, 
+	[
+		new THREE.MeshBasicMaterial({map: THREE.ImageUtils.loadTexture('zudo.png')}), // right
+		new THREE.MeshBasicMaterial({map: THREE.ImageUtils.loadTexture('zudo.png')}), // left
+		new THREE.MeshBasicMaterial({map: THREE.ImageUtils.loadTexture('zudo.png')}), // top
+		new THREE.MeshBasicMaterial({map: THREE.ImageUtils.loadTexture('zudo.png')}), // bottom
+		new THREE.MeshBasicMaterial({map: THREE.ImageUtils.loadTexture('zudo.png')}), // back
+		new THREE.MeshBasicMaterial({map: THREE.ImageUtils.loadTexture('zudo.png')}), // front
+	]);
+	
+	var material =  new THREE.MeshFaceMaterial();
+	var cubeMesh = new THREE.Mesh( geometry, material);
+	scene.add( cubeMesh );
+	
+	renderer.render( scene, camera );
+	
+	window.addEventListener('mousemove', function (e) {
+		var mouseX = ( e.clientX - width / 2 );
+		var mouseY = ( e.clientY - height / 2 );
+		cubeMesh.rotation.x = mouseY * 0.005;
+		cubeMesh.rotation.y = mouseX * 0.005;
+		
+		renderer.render( scene, camera );
+	}, false);
+}, false);
+
+</script>
+</head>
+<body>
+
+
+
+</body>
+</html>
