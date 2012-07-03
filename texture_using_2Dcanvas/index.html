@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>use2Dcanvass</title>
+<style>
+body{
+	font-family:Arial, Helvetica, sans-serif;
+	background:#333;
+}
+canvas{
+	position:absolute;
+	top:0;
+	left:0;
+}
+</style>
+<script src="../lib/Three_r49.js"></script>
+<script>
+window.addEventListener('DOMContentLoaded', (function(){
+	
+	
+	var image = new Image();
+	image.src = 'zudo.png';
+	image.addEventListener('load', function(){
+		createScene();
+	}, false);
+	
+	
+	function createScene(){
+	
+		var width = window.innerWidth;
+		var height = window.innerHeight;
+		
+		var scene = new THREE.Scene();
+		
+		var camera = new THREE.PerspectiveCamera( 40, width / height, 1, 1000 );
+		scene.add( camera );
+		
+		var ambient = new THREE.AmbientLight( 0xffffff);
+		scene.add( ambient );
+		var light = new THREE.DirectionalLight( 0xffffff, 0.8 );
+		light.position.set( 1, 1, 1 ).normalize();
+		scene.add( light );
+		
+		var renderer = new THREE.WebGLRenderer();
+		renderer.setSize( width, height );
+		document.body.appendChild( renderer.domElement );
+		
+		
+		var canvas = document.createElement('canvas');
+		canvas.width  = 200;
+		canvas.height = 200;
+		var ctx = canvas.getContext('2d');
+		ctx.drawImage(image, 0, 0, 200, 200);
+		ctx.font = '24px Arial';
+		ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
+		ctx.fillText('Hello, world!', 20, 50);
+		var imageData = ctx.getImageData(0, 0, canvas.width / 2, canvas.height);
+		var data = imageData.data;
+		for (var i = 0; i < data.length; i += 4) {
+			data[i] = 255 - data[i]; // red
+			data[i + 1] = 255 - data[i + 1]; // green
+			data[i + 2] = 255 - data[i + 2]; // blue
+			// i+3 is alpha (the fourth element)
+		}
+		ctx.putImageData(imageData, 0, 0);
+		
+		var texture = new THREE.Texture(canvas);
+		
+		var material = new THREE.MeshBasicMaterial({map: texture, overdraw: true});
+		
+		var plane = new THREE.PlaneGeometry( 30, 30 );
+		mesh = new THREE.Mesh( plane, material );
+		mesh.doubleSided = true; //裏も描画
+		scene.add(mesh);
+		
+		
+		var theta = 0;
+		(function(){
+			camera.position.x = 50 * Math.sin( theta / 2 * Math.PI / 360 );
+			camera.position.y = 50 * Math.sin( theta / 2 * Math.PI / 360 );
+			camera.position.z = 50 * Math.cos( theta / 2 * Math.PI / 360 );
+			camera.lookAt( scene.position );
+			texture.needsUpdate = true;
+			theta++;
+			renderer.render( scene, camera );
+			requestAnimationFrame( arguments.callee, 10 );
+		})();
+	}
+
+}), false);
+
+</script>
+</head>
+<body>
+</body>
+</html>

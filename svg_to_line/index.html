@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>demo</title>
+<style>
+body {
+	padding:0;
+	margin:0;
+	background: #333;
+	overflow: hidden;
+}
+</style>
+<script src="../lib/Three_r49.js"></script>
+</head>
+<body>
+
+<script>
+var width = window.innerWidth;
+var height = window.innerHeight;
+
+var scene = new THREE.Scene();
+
+var renderer = new THREE.WebGLRenderer();
+renderer.setSize( width, height );
+document.body.appendChild( renderer.domElement );
+
+var camera = new THREE.PerspectiveCamera( 40, width / height, 1, 1000 );
+scene.add( camera );
+
+var light = new THREE.DirectionalLight( 0xffffff, 1.5 );
+light.position.set( -1, 1, 1 ).normalize();
+scene.add( light );
+
+var pathGroup = new THREE.Object3D();
+scene.add( pathGroup );
+
+//ajax
+var xhr = new XMLHttpRequest();
+xhr.open('GET', 'logo.svg',  true);
+xhr.onreadystatechange = function() {
+	if (xhr.readyState == 4 && xhr.status == 200) {
+		var svg = xhr.responseXML;
+		for (var i = 0, l = svg.querySelectorAll('path').length; i < l; i++){
+			var d = svg.querySelectorAll('path')[i].getAttribute('d');
+			pathDataTo3D(d);
+		}
+		pathGroup.rotation.x = -90 * 180 / Math.PI;
+		pathGroup.position.x = -100;
+	}
+}
+xhr.send(null); 
+
+//parse and to 3d
+function pathDataTo3D(pathData){
+	pathData = pathData
+		.replace(/([0-9]) ([0-9])/g,'$1,$2')
+		.replace(/(,?)\s+(,?)/g,'$1$2')
+		.replace(/([0-9])-/g,'$1,-')
+		.replace(/(.)([a-z])/ig,'$1|$2')
+		.replace(/([a-z])/ig,'$1,')
+		.split('|');
+	//console.log(pathData);
+	
+	var line = new THREE.Path();
+	var currentPoint = new THREE.Vector2();
+	var x1, y1, x2, y2;
+	for(var i = 0, l = pathData.length; i < l; i ++){
+		pathData[i] = pathData[i].split(',');
+		var command = pathData[i][0];
+		switch (command){
+			case 'M':
+				currentPoint.x = (1 * pathData[i][1]);
+				currentPoint.y = (1 * pathData[i][2]);
+				line.moveTo( currentPoint.x, currentPoint.y );
+				break;
+			
+			case 'm':
+				currentPoint.x += (1 * pathData[i][1]);
+				currentPoint.y += (1 * pathData[i][2]);
+				line.moveTo( currentPoint.x, currentPoint.y );
+				break;
+			
+			case 'L':
+				currentPoint.x = (1 * pathData[i][1]);
+				currentPoint.y = (1 * pathData[i][2]);
+				line.lineTo( currentPoint.x, currentPoint.y );
+				break;
+			
+			case 'l':
+				currentPoint.x += (1 * pathData[i][1]);
+				currentPoint.y += (1 * pathData[i][2]);
+				line.lineTo( currentPoint.x, currentPoint.y );
+				break;
+			
+			case 'H':
+				currentPoint.x = (1 * pathData[i][1]);
+				line.lineTo( currentPoint.x, currentPoint.y );
+				break;
+			
+			case 'h':
+				currentPoint.x += (1 * pathData[i][1]);
+				line.lineTo( currentPoint.x, currentPoint.y );
+				break;
+			
+			case 'V':
+				currentPoint.y = (1 * pathData[i][1]);
+				line.lineTo( currentPoint.x, currentPoint.y );
+				break;
+			
+			case 'v':
+				currentPoint.y += (1 * pathData[i][1]);
+				line.lineTo( currentPoint.x, currentPoint.y );
+				break;
+			
+			case 'C':
+				x1 = (1 * pathData[i][1]);
+				y1 = (1 * pathData[i][2]);
+				x2 = (1 * pathData[i][3]);
+				y2 = (1 * pathData[i][4]);
+				currentPoint.x = (1 * pathData[i][5]);
+				currentPoint.y = (1 * pathData[i][6]);
+				line.bezierCurveTo( x1, y2, x2, y2, currentPoint.x, currentPoint.y );
+				break;
+			
+			case 'c':
+				x1 = currentPoint.x + (1 * pathData[i][1]);
+				y1 = currentPoint.y + (1 * pathData[i][2]);
+				x2 = currentPoint.x + (1 * pathData[i][3]);
+				y2 = currentPoint.y + (1 * pathData[i][4]);
+				currentPoint.x += (1 * pathData[i][5]);
+				currentPoint.y += (1 * pathData[i][6]);
+				line.bezierCurveTo( x1, y2, x2, y2, currentPoint.x, currentPoint.y );
+				break;
+			
+			case 'S':
+				x1 = currentPoint.x * 2 - x1;
+				y1 = currentPoint.x * 2 - y1;
+				x2 = (1 * pathData[i][1]);
+				y2 = (1 * pathData[i][2]);
+				currentPoint.x = (1 * pathData[i][3]);
+				currentPoint.y = (1 * pathData[i][4]);
+				line.bezierCurveTo( x1, y2, x2, y2, currentPoint.x, currentPoint.y );
+				break;
+			
+			case 's':
+				x1 = currentPoint.x * 2 - x1;
+				y1 = currentPoint.x * 2 - y1;
+				x2 += (1 * pathData[i][1]);
+				y2 += (1 * pathData[i][2]);
+				currentPoint.x += (1 * pathData[i][3]);
+				currentPoint.y += (1 * pathData[i][4]);
+				line.bezierCurveTo( x1, y2, x2, y2, currentPoint.x, currentPoint.y );
+				break;
+		}
+		
+	}
+	
+	var points = line.createPointsGeometry();
+	var line = new THREE.Line( points, new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: 3 } ) );
+	pathGroup.add( line );
+	
+	var pointsClone = THREE.GeometryUtils.clone( points );
+	var pointsParticles = new THREE.ParticleSystem( pointsClone, new THREE.ParticleBasicMaterial( { color: 0xffffff, size: 5, opacity: 0.5 } ) );
+	pathGroup.add( pointsParticles );
+}
+
+
+var theta = 0;
+(function(){
+	renderer.render( scene, camera );
+	camera.position.x = 450 * Math.sin( theta * Math.PI / 360 );
+	camera.position.y = 450 * Math.sin( theta * Math.PI / 360 );
+	camera.position.z = 450 * Math.cos( theta * Math.PI / 360 );
+	camera.lookAt( scene.position );
+	theta++;
+	requestAnimationFrame( arguments.callee );
+})();
+
+		</script>
+
+</body>
+</html>

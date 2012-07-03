@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>MMD models /w THREE.js</title>
+<style>
+body{
+	font-family:Arial, Helvetica, sans-serif;
+	background:#333;
+}
+canvas{
+	position:absolute;
+	top:0;
+	left:0;
+}
+.mod-select{
+	color:#fff;
+	text-align:center;
+	position:absolute;
+	z-index:2;
+	top:0;
+	left:100px;
+	right:0;
+	padding:.5em 1em;
+	background:rgba(0,0,0,.6);
+}
+</style>
+<script src="../lib/Three_r49.js"></script>
+<script src="ColladaLoader.js"></script>
+<script src="../lib/Detector.js"></script>
+<script src="../lib/Stats.js"></script>
+<script src="fonts/helvetiker_regular.typeface.js"></script>
+<script>
+var loadModel;
+window.addEventListener('DOMContentLoaded', (function(){
+	if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+	var width = window.innerWidth;
+	var height = window.innerHeight;
+	
+	var scene = new THREE.Scene();
+	
+	var camera = new THREE.PerspectiveCamera( 40, width / height, 1, 1000 );
+	scene.add( camera );
+	
+	var ambient = new THREE.AmbientLight( 0xffffff);
+	scene.add( ambient );
+	var light = new THREE.DirectionalLight( 0xffffff, 0.8 );
+	light.position.set( 1, 1, 1 ).normalize();
+	scene.add( light );
+	//var light2 = new THREE.DirectionalLight( 0xffffff );
+	//light2.position.set( -1, -1, -1 ).normalize();
+	//scene.add( light2 );
+	
+	var renderer = new THREE.WebGLRenderer();
+	renderer.setSize( width, height );
+	document.body.appendChild( renderer.domElement );
+	
+	var stats = new Stats();
+	stats.domElement.style.position = 'absolute';
+	stats.domElement.style.top = 0;
+	document.body.appendChild( stats.domElement );
+	
+	var dae;
+	loadModel = function(path){
+		if(typeof dae === 'object'){
+			scene.remove(dae);
+		}
+		loading(true);
+		var loader = new THREE.ColladaLoader();
+		loader.load( path, function colladaReady( collada ) {
+			loading(false);
+			dae = collada.scene;
+			dae.position.y = -5;
+			dae.scale.x = 0.5;
+			dae.scale.y = 0.5;
+			dae.scale.z = 0.5;
+			scene.add( dae );
+		});
+	}
+	
+	var loadText;
+	function loading(state){
+		var btn = document.querySelectorAll('button');
+		if(state){
+			for(var i = 0, l = btn.length; i < l; i++){
+				btn[i].disabled = true;
+			}
+			var geometry = new THREE.TextGeometry( 'Loading...', {
+				size: 2,
+				height: .5,
+				curveSegments: 2,
+				font: 'helvetiker',
+				weight: 'normal',
+				style: 'normal'
+			});
+			var material = new THREE.MeshPhongMaterial( { color: 0xffffff } );
+			loadText = new THREE.Mesh( geometry, material );
+			loadText.position.x = -5;
+			scene.add( loadText );
+		}else{
+			for(var i = 0, l = btn.length; i < l; i++){
+				btn[i].disabled = false;
+			}
+			scene.remove(loadText);
+		}
+	}
+	
+	var mouseX = mouseY = 0;
+	window.addEventListener('mousemove', function (e) {
+		mouseX = e.clientX;
+		mouseY = e.clientY;
+	}, false);
+	
+	var theta = 0;
+	(function(){
+		requestAnimationFrame( arguments.callee );
+		
+		var x =   (mouseX / width)  * 2 - 1;
+		var y = - (mouseY / height) * 2 + 1;
+		
+		theta = theta + (x * -5);
+		camera.position.x = (30 - (Math.abs(y) * 30)) * Math.sin( theta * Math.PI / 360 );
+		camera.position.z = (30 - (Math.abs(y) * 30)) * Math.cos( theta * Math.PI / 360 );
+		camera.position.y = y * 20;
+		
+		camera.lookAt( scene.position );
+		renderer.render( scene, camera );
+		
+		stats.update();
+	})();
+
+}), false);
+
+</script>
+</head>
+<body>
+<div class="mod-select">
+	choose a MMD model :
+	<button onclick="loadModel('model_miku_diva/diva_miku_ver105_kai.dae')">miku_diva</button>
+	<button onclick="loadModel('model_usausa/usausa_106.dae')">usausa</button>
+	<button onclick="loadModel('model_bunny/bunny.dae')">bunny</button>
+	
+</div>
+</body>
+</html>

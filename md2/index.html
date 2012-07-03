@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>MD2 /w THREE.js</title>
+<style>
+body{
+	font-family:Arial, Helvetica, sans-serif;
+	background:#333;
+}
+canvas{
+	position:absolute;
+	top:0;
+	left:0;
+}
+</style>
+<script src="../lib/Three_r49.js"></script>
+<script>
+var player = {
+	mesh         : null,
+	motion       : 'stand',
+	state        : 'stand',
+	changeMotion : function(){}
+};
+window.addEventListener('DOMContentLoaded', (function(){
+	
+	var width = window.innerWidth;
+	var height = window.innerHeight;
+	
+	var scene = new THREE.Scene();
+	
+	var camera = new THREE.PerspectiveCamera( 40, width / height, 1, 1000 );
+	scene.add( camera );
+	
+	//var ambient = new THREE.AmbientLight( 0xffffff);
+	//scene.add( ambient );
+	var light = new THREE.DirectionalLight( 0xffffff, 0.8 );
+	light.position.set( 1, 1, 1 ).normalize();
+	scene.add( light );
+    
+	var light2 = new THREE.DirectionalLight( 0xffffff );
+	light2.position.set( -1, -1, -1 ).normalize();
+	scene.add( light2 );
+	
+	var renderer = new THREE.WebGLRenderer();
+	renderer.setSize( width, height );
+	document.body.appendChild( renderer.domElement );
+	
+	var md2frames = {
+		// first, last, fps
+		stand   : [   0,  39,  9, {state : 'stand',  action : false} ],   // STAND
+		run     : [  40,  45, 10, {state : 'stand',  action : false} ],   // RUN
+		attack  : [  46,  53, 10, {state : 'stand',  action : true}  ],   // ATTACK
+		pain1   : [  54,  57,  7, {state : 'stand',  action : true}  ],   // PAIN_A
+		pain2   : [  58,  61,  7, {state : 'stand',  action : true}  ],   // PAIN_B
+		pain3   : [  62,  65,  7, {state : 'stand',  action : true}  ],   // PAIN_C
+		jump    : [  66,  71,  7, {state : 'stand',  action : true}  ],   // JUMP
+		flip    : [  72,  83,  7, {state : 'stand',  action : true}  ],   // FLIP
+		salute  : [  84,  94,  7, {state : 'stand',  action : true}  ],   // SALUTE
+		taunt   : [  95, 111, 10, {state : 'stand',  action : true}  ],   // FALLBACK
+		wave    : [ 112, 122,  7, {state : 'stand',  action : true}  ],   // WAVE
+		point   : [ 123, 134,  6, {state : 'stand',  action : true}  ],   // POINT
+		crstand : [ 135, 153, 10, {state : 'crstand', action : false}],   // CROUCH_STAND
+		crwalk  : [ 154, 159,  7, {state : 'crstand', action : false}],   // CROUCH_WALK
+		crattack: [ 160, 168, 10, {state : 'crstand', action : true} ],   // CROUCH_ATTACK
+		crpain  : [ 196, 172,  7, {state : 'crstand', action : true} ],   // CROUCH_PAIN
+		crdeath : [ 173, 177,  5, {state : 'freeze', action : true} ],   // CROUCH_DEATH
+		death1  : [ 178, 183,  7, {state : 'freeze',  action : true}  ],   // DEATH_FALLBACK
+		death2  : [ 184, 189,  7, {state : 'freeze',  action : true}  ],   // DEATH_FALLFORWARD
+		death3  : [ 190, 197,  7, {state : 'freeze',  action : true}  ],   // DEATH_FALLBACKSLOW
+		//boom    : [ 198, 198,  5 ]    // BOOM
+	}
+	
+	player.changeMotion = function(motion){
+		player.motion = motion;
+		player.state = md2frames[motion][3].state;
+		var animMin = md2frames[motion][0];
+		var animMax = md2frames[motion][1];
+		var animFps = md2frames[motion][2];
+		player.mesh.time = 0;
+		player.mesh.duration = 1000 * (( animMax - animMin ) / animFps);
+		player.mesh.setFrameRange( animMin, animMax );
+	}
+	
+	//load converted md2 data
+	var material = new THREE.MeshPhongMaterial( { map: THREE.ImageUtils.loadTexture( '1.png' ), ambient: 0x999999, color: 0xffffff, specular: 0xffffff, shininess: 25, morphTargets: true } );
+	var loader = new THREE.JSONLoader();
+	loader.load( 'droid.js', function( geometry ) {
+		player.mesh = new THREE.MorphAnimMesh( geometry, material );
+		player.mesh.rotation.y = -Math.PI / 2;
+		//player.mesh.scale.set(2, 2, 2);
+		player.mesh.castShadow = true;
+		player.mesh.receiveShadow = false;
+		player.changeMotion('stand');
+		scene.add( player.mesh );
+	
+	} );
+	
+	
+	var theta = 0;
+	var clock = new THREE.Clock();
+	(function(){
+		
+		var delta = clock.getDelta();
+		if (player.mesh && player.motion) {
+			var isEndFleame = (md2frames[player.motion][1] === player.mesh.currentKeyframe);
+			var isAction = md2frames[player.motion][3].action;
+			
+			if(!isAction || (isAction && !isEndFleame)){
+				player.mesh.updateAnimation(1000 * delta);
+			}else if(/freeze/.test(md2frames[player.motion][3].state)){
+				//dead...
+			}else{
+				player.changeMotion(player.state);
+			}
+		}
+		camera.position.x = 150 * Math.sin( theta / 2 * Math.PI / 360 );
+		camera.position.y = 150 * Math.sin( theta / 2 * Math.PI / 360 );
+		camera.position.z = 150 * Math.cos( theta / 2 * Math.PI / 360 );
+		camera.lookAt( scene.position );
+		theta++;
+		
+		renderer.render( scene, camera );
+		requestAnimationFrame( arguments.callee );
+	})();
+
+}), false);
+</script>
+</head>
+<body>
+<div style="position:absolute; top:0; left:0; z-index:100; background:rgba(0,0,0,.6)">
+<button onclick="player.mesh.material.map = THREE.ImageUtils.loadTexture( '1.png' )">Texture 1</button>
+<button onclick="player.mesh.material.map = THREE.ImageUtils.loadTexture( '2.png' )">Texture 2</button><br>
+
+<button onclick="player.changeMotion('stand')">stand</button>
+<button onclick="player.changeMotion('run')">run</button>
+<button onclick="player.changeMotion('attack')">attack</button>
+<button onclick="player.changeMotion('pain1')">pain1</button>
+<button onclick="player.changeMotion('pain2')">pain2</button>
+<button onclick="player.changeMotion('pain3')">pain3</button>
+<button onclick="player.changeMotion('jump')">jump</button>
+<button onclick="player.changeMotion('flip')">flip</button>
+<button onclick="player.changeMotion('salute')">salute</button>
+<button onclick="player.changeMotion('taunt')">taunt</button>
+<button onclick="player.changeMotion('wave')">wave</button>
+<button onclick="player.changeMotion('point')">point</button>
+<button onclick="player.changeMotion('crstand')">crstand</button>
+<button onclick="player.changeMotion('crwalk')">crwalk</button>
+<button onclick="player.changeMotion('crattack')">crattack</button>
+<button onclick="player.changeMotion('crpain')">crpain</button>
+<button onclick="player.changeMotion('crdeath');">crdeath</button>
+<button onclick="player.changeMotion('death1');">death1</button>
+<button onclick="player.changeMotion('death2');">death2</button>
+<button onclick="player.changeMotion('death3');">death3</button>
+
+</div>
+</body>
+</html>
