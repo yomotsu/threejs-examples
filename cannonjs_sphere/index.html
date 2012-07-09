@@ -106,8 +106,8 @@ window.addEventListener('DOMContentLoaded', function(){
 		// Step world
 		world.step(1.0 / 60.0);
 		for(var i = 0, l = sphereBodis.length; i < l; i++){
-			sphereMeshs[i].position.set(sphereBodis[i].position.x, sphereBodis[i].position.y, sphereBodis[i].position.z);
-			sphereMeshs[i].quaternion.set(sphereBodis[i].quaternion.w, sphereBodis[i].quaternion.x, sphereBodis[i].quaternion.y, sphereBodis[i].quaternion.z);
+			sphereBodis[i].quaternion.copy(sphereMeshs[i].quaternion);
+			sphereBodis[i].position.copy(sphereMeshs[i].position);
 		}
 	}
 	

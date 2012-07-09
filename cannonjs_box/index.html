@@ -106,8 +106,8 @@ window.addEventListener('DOMContentLoaded', function(){
 		// Step world
 		world.step(1.0 / 60.0);
 		for(var i = 0, l = boxBodis.length; i < l; i++){
-			boxMeshs[i].position.set(boxBodis[i].position.x, boxBodis[i].position.y, boxBodis[i].position.z);
-			boxMeshs[i].quaternion.set(boxBodis[i].quaternion.w, boxBodis[i].quaternion.x, boxBodis[i].quaternion.y, boxBodis[i].quaternion.z);
+			boxBodis[i].quaternion.copy(boxMeshs[i].quaternion);
+			boxBodis[i].position.copy(boxMeshs[i].position);
 		}
 	}
 	
