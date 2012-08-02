@@ -1,0 +1,380 @@
+<html>
+<head>
+<title>THREE /w Box2dWeb</title>
+<style>
+body {
+	margin:0;
+	background: #666;
+}
+.ctrl{
+	color: #fff;
+	font-family: sans-serif;
+	font-size: 14px;
+	padding: 4px;
+	position: absolute;
+	background: rgba(0,0,0,.25);
+}
+.ctrl canvas {
+	display: block;
+	border:1px solid #000;
+	background:#fff;
+}
+</style>
+<script src="../lib/Three_r49.js"></script>
+<script src="../lib/Box2dWeb-2.1.a.3.min.js"></script>
+<script>
+window.addEventListener('DOMContentLoaded', function(){
+	var b2Vec2 = Box2D.Common.Math.b2Vec2,
+		b2AABB = Box2D.Collision.b2AABB,
+		b2BodyDef = Box2D.Dynamics.b2BodyDef,
+		b2Body = Box2D.Dynamics.b2Body,
+		b2FixtureDef = Box2D.Dynamics.b2FixtureDef,
+		b2Fixture = Box2D.Dynamics.b2Fixture,
+		b2World = Box2D.Dynamics.b2World,
+		b2MassData = Box2D.Collision.Shapes.b2MassData,
+		b2PolygonShape = Box2D.Collision.Shapes.b2PolygonShape,
+		b2CircleShape = Box2D.Collision.Shapes.b2CircleShape,
+		b2DebugDraw = Box2D.Dynamics.b2DebugDraw,
+		b2MouseJointDef = Box2D.Dynamics.Joints.b2MouseJointDef;
+
+	var world = new b2World(
+		new b2Vec2(0, 9.80665), //gravity
+		true                    //allow sleep
+	);
+
+	var width = window.innerWidth;
+	var height = window.innerHeight;
+
+	var bodies = [];
+	var meshs = [];
+
+	var renderer, scene, camera;
+	
+	initDebugDraw();
+	initScene();
+	createObjects();
+	animate();
+
+	function initDebugDraw(){
+		//setup debug draw
+		var debugDraw = new b2DebugDraw();
+		debugDraw.SetSprite(document.getElementById("canvas").getContext("2d"));
+		debugDraw.SetDrawScale(10.0);
+		debugDraw.SetFillAlpha(0.3);
+		debugDraw.SetLineThickness(1.0);
+		debugDraw.SetFlags(b2DebugDraw.e_shapeBit | b2DebugDraw.e_jointBit);
+		world.SetDebugDraw(debugDraw);
+	}
+	
+	function initScene(){
+		// renderer
+		renderer = new THREE.WebGLRenderer();
+		renderer.setSize( width, height );
+		document.body.appendChild( renderer.domElement );
+
+		// scene
+		scene = new THREE.Scene();
+		
+		// camera
+		camera = new THREE.PerspectiveCamera( 40, width / height, 1, 1000 );
+		camera.position.set(10, 0, 20);
+		camera.lookAt( new THREE.Vector3( 10, -5, 0) );
+		scene.add( camera );
+		
+		// light
+		var light = new THREE.DirectionalLight( 0xffffff, 1 );
+		light.position.set(1, 1, 1 );
+		scene.add( light );
+		// light2
+		var light = new THREE.DirectionalLight( 0xffffff, 0.5 );
+		light.position.set(-1, 1, -1 );
+		scene.add( light );
+
+	}
+
+	function createObjects() {
+
+		var ground  = new CreateStaticRect({x:10, y:13,  width:20,  height:0.5 });
+		var wallA   = new CreateStaticRect({x:0,  y:6.5, width:0.5, height:13.5});
+		var wallB   = new CreateStaticRect({x:20, y:6.5, width:0.5, height:13.5});
+		var ceiling = new CreateStaticRect({x:10, y:-0,  width:20,  height:0.5 });
+		
+		for(var i = 0; i < 10; i++){
+			var box = new CreateStaticRect({
+				x:10,
+				y: i / 2 + 8,
+				width:i + 1,
+				height:0.5
+			});
+		}
+		
+		var head      = new CreateRect({x:5, y:5, width:1, height:1, texture:'face.png'});
+		var torsoA    = new CreateRect({x:5, y:6, width:1.5, height:0.8})
+		var torsoB    = new CreateRect({x:5, y:6.5, width:1.25, height:0.8})
+		var torsoC    = new CreateRect({x:5, y:7, width:1.0, height:0.8})
+		var pelvis    = new CreateRect({x:5, y:7.5, width:1.0, height:0.8})
+		var leftLegA  = new CreateRect({x:4.75, y:8.5, width:0.4, height:1.75});
+		var leftLegB  = new CreateRect({x:4.75, y:9.75, width:0.4, height:1.5});
+		var rightLegA = new CreateRect({x:5.29, y:8.5, width:0.4, height:1.75});
+		var rightLegB = new CreateRect({x:5.29, y:9.75, width:0.4, height:1.5});
+		var leftArmA  = new CreateRect({x:3.6, y:5.8, width:1.3, height:0.35});
+		var leftArmB  = new CreateRect({x:2.5, y:5.8, width:1.25, height:0.35});
+		var rightArmA = new CreateRect({x:6.4, y:5.8, width:1.3, height:0.35});
+		var rightArmB = new CreateRect({x:7.5, y:5.8, width:1.25, height:0.35});
+		
+		makeJoint(head, torsoA, -0.15, 0.15);
+		
+		makeJoint(torsoA, torsoB,-.15, .15);
+		makeJoint(torsoC, torsoB,-.15, .15);
+		makeJoint(torsoC, pelvis,-.15, .15);
+		
+		makeJoint(pelvis, leftLegA, -1, 1, 0, -0.5);
+		makeJoint(leftLegA, leftLegB, -1, 1);
+		
+		makeJoint(pelvis, rightLegA, -1, 1, 0, -0.5);
+		makeJoint(rightLegA, rightLegB, -1, 1);
+		
+		makeJoint(torsoA, leftArmA, -1.5, 1);
+		makeJoint(leftArmA, leftArmB, -1.5, 1);
+		
+		makeJoint(torsoA, rightArmA, -1, 1.5)
+		makeJoint(rightArmA, rightArmB, -1, 1.5)
+		/**/
+		function CreateRect(obj){
+			var x = obj.x || 0;
+			var y = obj.y || 0;
+			var width  = obj.width  || 1;
+			var height = obj.height || 1;
+			var texture = obj.texture || null;
+			var static = obj.static || false;
+		
+			var fixDef = new b2FixtureDef;
+			fixDef.density = 1.0;
+			fixDef.friction = 0.5;
+			fixDef.restitution = 0.2;
+			fixDef.shape = new b2PolygonShape;
+			fixDef.shape.SetAsBox(width / 2, height / 2);
+		
+			var bodyDef = new b2BodyDef;
+			bodyDef.type = b2Body.b2_dynamicBody;
+			bodyDef.position.x = x;
+			bodyDef.position.y = y;
+		
+			var body = world.CreateBody(bodyDef);
+			body.CreateFixture(fixDef);
+			
+			var faceMateria;
+			if(texture){
+				faceMaterial = [
+					new THREE.MeshPhongMaterial({color:0xFFE6CE}),
+					new THREE.MeshPhongMaterial({color:0xFFE6CE}),
+					new THREE.MeshPhongMaterial({color:0xFFE6CE}),
+					new THREE.MeshPhongMaterial({color:0xFFE6CE}),
+					new THREE.MeshPhongMaterial({color:0xFFE6CE, map: THREE.ImageUtils.loadTexture(texture)}),
+					new THREE.MeshPhongMaterial({color:0xFFE6CE})
+				];
+			}else{
+				faceMaterial = [
+					new THREE.MeshPhongMaterial({color:0xFFE6CE}),
+					new THREE.MeshPhongMaterial({color:0xFFE6CE}),
+					new THREE.MeshPhongMaterial({color:0xFFE6CE}),
+					new THREE.MeshPhongMaterial({color:0xFFE6CE}),
+					new THREE.MeshPhongMaterial({color:0xFFE6CE}),
+					new THREE.MeshPhongMaterial({color:0xFFE6CE})
+				]
+			}
+		
+			var mesh = new THREE.Mesh(
+				new THREE.CubeGeometry(width, height, 0.5, 1, 1, 1, faceMaterial),
+				new THREE.MeshFaceMaterial()
+			);
+			
+			mesh.position.set(x, -y, 0);
+			scene.add( mesh );
+		
+			bodies.push(body);
+			meshs.push(mesh);
+			return body;
+		}
+		
+		function CreateStaticRect(obj){
+			var x = obj.x || 0;
+			var y = obj.y || 0;
+			var width  = obj.width  || 1;
+			var height = obj.height || 1;
+		
+			var fixDef = new b2FixtureDef;
+			fixDef.density = 1.0;
+			fixDef.friction = 0.5;
+			fixDef.restitution = 0.2;
+			fixDef.shape = new b2PolygonShape;
+			fixDef.shape.SetAsBox(width / 2, height / 2);
+		
+			var bodyDef = new b2BodyDef;
+			bodyDef.type = b2Body.b2_staticBody;
+			bodyDef.position.x = x;
+			bodyDef.position.y = y;
+		
+			var body = world.CreateBody(bodyDef);
+			body.CreateFixture(fixDef);
+			
+			var mesh = new THREE.Mesh(
+				new THREE.CubeGeometry(width, height, 3),
+				new THREE.MeshPhongMaterial({color:0xDDDDDD, map: THREE.ImageUtils.loadTexture('bg.jpg')})
+			);
+			
+			mesh.position.set(x, -y, 0);
+			scene.add( mesh );
+			return body;
+		}
+		
+		function makeJoint(body1, body2, lower, upper, offX, offY){
+			offX = 0;
+			offY = 0;
+			var minX = Math.min(body1.GetPosition().x, body2.GetPosition().x);
+			var maxX = Math.max(body1.GetPosition().x, body2.GetPosition().x);
+			var x = minX + (maxX - minX) * 0.5 + offX;
+		
+			var minY = Math.min(body1.GetPosition().y, body2.GetPosition().y);
+			var maxY = Math.max(body1.GetPosition().y, body2.GetPosition().y);
+			var y = minY + (maxY - minY) * 0.5 + offY;
+		
+			var revJointDef = new Box2D.Dynamics.Joints.b2RevoluteJointDef;
+			revJointDef.Initialize(body1, body2, {x:x, y:y}, lower, upper);
+			world.CreateJoint(revJointDef);
+		}
+	}
+
+		//mouse
+		var mouseX, mouseY, mousePVec, isMouseDown, selectedBody, mouseJoint;
+		var canvasPosition = {x:6,y:6};
+		 
+		document.addEventListener("mousedown", function(e) {
+			isMouseDown = true;
+			handleMouseMove(e);
+			document.addEventListener("mousemove", handleMouseMove, true);
+		}, true);
+		 
+		document.addEventListener("mouseup", function() {
+			document.removeEventListener("mousemove", handleMouseMove, true);
+			isMouseDown = false;
+			mouseX = undefined;
+			mouseY = undefined;
+		}, true);
+		 
+		function handleMouseMove(e) {
+			mouseX = (e.clientX - canvasPosition.x) / 10;
+			mouseY = (e.clientY - canvasPosition.y) / 10;
+		};
+		 
+		function getBodyAtMouse() {
+			mousePVec = new b2Vec2(mouseX, mouseY);
+			var aabb = new b2AABB();
+			aabb.lowerBound.Set(mouseX - 0.001, mouseY - 0.001);
+			aabb.upperBound.Set(mouseX + 0.001, mouseY + 0.001);
+			
+			// Query the world for overlapping shapes.
+
+			selectedBody = null;
+			world.QueryAABB(getBodyCB, aabb);
+			return selectedBody;
+		}
+
+		function getBodyCB(fixture) {
+			if(fixture.GetBody().GetType() != b2Body.b2_staticBody) {
+				if(fixture.GetShape().TestPoint(fixture.GetBody().GetTransform(), mousePVec)) {
+					selectedBody = fixture.GetBody();
+					return false;
+				}
+			}
+			return true;
+		}
+
+		function animate(){
+			updatePhysics();
+			render();
+			requestAnimationFrame( animate );
+		}
+
+		function updatePhysics(){
+			if(isMouseDown && (!mouseJoint)) {
+				var body = getBodyAtMouse();
+				if(body) {
+					var md = new b2MouseJointDef();
+					md.bodyA = world.GetGroundBody();
+					md.bodyB = body;
+					md.target.Set(mouseX, mouseY);
+					md.collideConnected = true;
+					md.maxForce = 300.0 * body.GetMass();
+					mouseJoint = world.CreateJoint(md);
+					body.SetAwake(true);
+				}
+			}
+			
+			if(mouseJoint) {
+				if(isMouseDown) {
+					mouseJoint.SetTarget(new b2Vec2(mouseX, mouseY));
+				} else {
+					world.DestroyJoint(mouseJoint);
+					mouseJoint = null;
+				}
+			}
+
+			world.Step(
+				1 / 60, //frame-rate
+				10,     //velocity iterations
+				10      //position iterations
+			);
+			world.DrawDebugData();
+			world.ClearForces();
+
+			for(var i = 0, l = bodies.length; i < l; i++){
+				meshs[i].position.set(
+					bodies[i].GetPosition().x,
+					bodies[i].GetPosition().y * -1,
+					0
+				);
+				meshs[i].rotation.set(
+					0,
+					0,
+					bodies[i].GetAngle() * -1
+				);
+			}
+		}
+
+		function render(){
+			renderer.render( scene, camera );
+		}
+		
+		document.querySelector('#icon').addEventListener('blur', function(){
+			var that = this;
+			var twitterID = that.value;
+			if(twitterID === ''){return}
+			that.disabled = true;
+			var img = new Image();
+			img.src = 'loader.php?src=https://api.twitter.com/1/users/profile_image?screen_name=' + twitterID + '&size=bigger';
+			
+			img.onload = function(){
+				meshs[0].geometry.materials[4].map.image.src = img.src;
+				that.disabled = false;
+			}
+			img.onerror = function(){
+				alert('The ID is not used on Twitter');
+				that.disabled = false;
+			}
+		}, false);
+		
+
+}, false);
+</script>
+</head>
+<body>
+	<div class="ctrl">
+		
+		<canvas id="canvas" width="200" height="130"></canvas>
+		<b>Controller</b> is here! try to drag the ragdoll!
+		<hr>
+		input Twitter ID : @ <input placeholder="Twitter ID" id="icon">
+	</div>
+</body>
+</html>

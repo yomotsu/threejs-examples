@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Geometries</title>
+<style>
+body{
+	margin:0;
+	padding:0;
+	overflow:hidden;
+	background:#333;
+}
+</style>
+<script src="../lib/Three_r49.js"></script>
+<script src="dat.gui.min.js"></script>
+<script>
+
+window.addEventListener("DOMContentLoaded", function(){
+	
+	var width = window.innerWidth;
+	var height = window.innerHeight;
+	var geoms = {
+		//via. https://github.com/mrdoob/three.js/tree/master/src/extras/geometries
+		'CubeGeometry'        : new THREE.CubeGeometry( 10, 20, 30, 1, 2, 3 ),
+		'CylinderGeometry'    : new THREE.CylinderGeometry( 5, 10, 20, 20, 5 ),
+		//ExtrudeGeometry.js
+		'IcosahedronGeometry' : new THREE.IcosahedronGeometry( 10, 3 ),
+		'LatheGeometry'       : new THREE.LatheGeometry( [
+			new THREE.Vector3(6, 0, 0),
+			new THREE.Vector3(8, 0, 4),
+			new THREE.Vector3(6, 0, 8),
+			new THREE.Vector3(8, 0, 12),
+			new THREE.Vector3(6, 0, 16),
+			new THREE.Vector3(8, 0, 20)
+		], 20 ),
+		'OctahedronGeometry'  : new THREE.OctahedronGeometry( 10, 3 ),
+		'PlaneGeometry'       : new THREE.PlaneGeometry( 20, 30, 10, 20 ),
+		'PolyhedronGeometry'  : new THREE.PolyhedronGeometry([
+			[ 0, 0, 0],
+			[ 1, 0, 0],
+			[ 0, 1, 0]
+		], [
+		 	[0, 1, 2]
+		], 20),
+		'SphereGeometry'      : new THREE.SphereGeometry( 10, 20, 30 ),
+		'TetrahedronGeometry' : new THREE.TetrahedronGeometry( 10, 3 ),
+		'TextGeometry'        : new THREE.TextGeometry( 'CodeGrid?', { size : 6, height : 2, curveSegments : 3, font : 'helvetiker' } ),
+		'TorusGeometry'       : new THREE.TorusGeometry( 10, 2, 10, 20 ),
+		'TorusKnotGeometry'   : new THREE.TorusKnotGeometry( 10, 2, 50, 20 ),
+		'TubeGeometry'        : new THREE.TubeGeometry( new THREE.SplineCurve3([
+			new THREE.Vector3(0,  0,  0),
+			new THREE.Vector3(8, 10, 10),
+			new THREE.Vector3(0, 10, 20),
+			new THREE.Vector3(8, 10, 30)
+		]), 10)
+	};
+
+
+// MeshNormalMaterial
+// MeshBasicMaterial
+// MeshLambertMaterial
+// MeshPhongMaterial
+// MeshDepthMaterial
+// MeshFaceMaterial
+
+	var renderStatus = {
+		currentScene : 'CubeGeometry',
+		wireframe : true
+	}
+	var set = {};
+	for(var i in geoms){
+		set[i] = new SceneSet(geoms[i]);
+	}
+	var renderer = new THREE.WebGLRenderer();
+	renderer.setSize( width, height );
+	document.body.appendChild( renderer.domElement );
+	
+	setGUI();
+	animate();
+	
+	
+	function SceneSet(geom){
+		
+		this.scene = new THREE.Scene();
+		
+		this.camera = new THREE.PerspectiveCamera( 40, width / height, 1, 1000 );
+		this.camera.position.set( 50, 50, 50 );
+		this.camera.lookAt( new THREE.Vector3( 0, 0, 0) );
+		this.scene.add( this.camera );
+		
+		var material = new THREE.MeshNormalMaterial();
+		this.mesh = new THREE.Mesh( geom, material );
+		this.mesh.doubleSided = true;
+		this.scene.add( this.mesh );
+		
+		return;
+	}
+	
+	function setGUI(){
+		var gui = new dat.GUI();
+		var arr = [];
+		for(var i in geoms){
+			arr.push(i);
+		}
+		gui.add( renderStatus, 'currentScene', arr );
+		gui.add( renderStatus, 'wireframe' );
+		return;
+	}
+	
+	function animate(){
+		var scene  = set[renderStatus.currentScene].scene;
+		var camera = set[renderStatus.currentScene].camera;
+		var mesh   = set[renderStatus.currentScene].mesh;
+		var timer = Date.now() * 0.03;
+		camera.position.x = 60 * Math.sin( timer * Math.PI / 360 );
+		camera.position.y = 20 * Math.sin( timer * Math.PI / 360 );
+		camera.position.z = 60 * Math.cos( timer * Math.PI / 360 );
+		camera.lookAt( new THREE.Vector3( 0, 0, 0) );
+		mesh.material.wireframe = renderStatus.wireframe;
+		renderer.render( scene, camera );
+		requestAnimationFrame(animate);
+		return;
+	};
+	
+	return;
+}, false);
+</script>
+</head>
+<body>
+</body>
+</html>
