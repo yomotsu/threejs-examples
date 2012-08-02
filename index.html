@@ -120,6 +120,7 @@ h1:after{
 	text-shadow: 0 1px 0 #fff;
 	text-decoration:none;
 	display:block;
+	overflow: hidden;
 	position:relative;
 	z-index:3;
 	-webkit-transform:translate3d(0, 0, 0);
@@ -156,6 +157,22 @@ h1:after{
 	    -ms-transition:all .2s linear;
 	     -o-transition:all .2s linear;
 	        transition:all .2s linear;
+}
+
+li.new a:before{
+	content:'new';
+	text-align: center;
+	display: block;
+	position: absolute;
+	right: -20px;
+	top:20px;
+	width: 100px;
+	background-color: yellow;
+	-webkit-transform: rotate(45deg);
+	   -moz-transform: rotate(45deg);
+	    -ms-transform: rotate(45deg);
+	     -o-transform: rotate(45deg);
+	        transform: rotate(45deg);
 }
 
 .contents a:hover img{
@@ -342,12 +359,12 @@ h1:after{
 			SVG to THREE.Line()
 		</a></li>
 		
-		<li><a href="./box2dwebjs/">
+		<li class="new"><a href="./box2dwebjs/">
 			<img src="./box2dwebjs/index.png" alt="" width="200" height="150">
 			box2dwebjs
 		</a></li>
 		
-		<li><a href="http://yomotsu.net/blog/assets/2012-08-01-ragdoll/">
+		<li class="new"><a href="http://yomotsu.net/blog/assets/2012-08-01-ragdoll/">
 			<img src="./box2dwebjs_ragdoll/index.png" alt="" width="200" height="150">
 			box2dwebjs_ragdoll
 		</a></li>
