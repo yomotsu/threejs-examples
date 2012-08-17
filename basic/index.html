@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -13,11 +14,8 @@ body {
 <script>
 window.addEventListener("DOMContentLoaded", function(){
 	
-	var viewAngle = 80;
 	var width  = window.innerWidth;
 	var height = window.innerHeight;
-	var near	= 1;
-	var far	 = 1000;
 	
 	// renderer (canvas)
 	var renderer = new THREE.WebGLRenderer();
@@ -28,7 +26,10 @@ window.addEventListener("DOMContentLoaded", function(){
 	var scene = new THREE.Scene();
 	
 	// set a camera
+	var viewAngle = 80;
 	var aspect = width / height;
+	var near	= 1;
+	var far	 = 1000;
 	var camera = new THREE.PerspectiveCamera( viewAngle, aspect, near, far );
 	camera.position.z = 500;
 	scene.add( camera );

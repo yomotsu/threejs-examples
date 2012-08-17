@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Geometries</title>
+<style>
+body{
+	margin:0;
+	padding:0;
+	overflow:hidden;
+	background:#333;
+}
+</style>
+<script src="../lib/Three_r49.js"></script>
+<!--<script src="../lib/stats.js"></script>-->
+<script src="physi.js"></script>
+<!--<script src="dat.gui.min.js"></script>-->
+<script>
+
+window.addEventListener("DOMContentLoaded", function(){
+	
+	'use strict';
+	
+	Physijs.scripts.worker = 'physijs_worker.js';
+	Physijs.scripts.ammo = 'ammo.js';
+
+	var width = window.innerWidth;
+	var height = window.innerHeight;
+
+	var moveState = {
+//		moving    : false,
+		front     : false,
+		backwards : false,
+		left      : false,
+		right     : false,
+		jump      : false,
+//		speed     : 10,
+//		angle     : 0
+	}
+
+	var renderer = new THREE.WebGLRenderer();
+	renderer.setSize( width, height );
+	document.body.appendChild( renderer.domElement );
+
+	var scene = new Physijs.Scene({fixedTimeStep: 1 / 60}); // instead of "new THREE.Scene()"
+	scene.setGravity(new THREE.Vector3( 0, -1000, 0));
+
+	var camera = new THREE.PerspectiveCamera( 40, width / height, 1, 1000 );
+	camera.position.set(0, 10, 50);
+	camera.lookAt( scene.position );
+	scene.add( camera );
+
+	var light = new THREE.DirectionalLight( 0xffffff );
+	light.position.set( 1, 2, 2 );
+	scene.add( light );
+
+	var box = new Physijs.SphereMesh(
+		new THREE.SphereGeometry( 2, 8, 8 ),
+		new THREE.MeshLambertMaterial()
+	);
+	box.position.set(0, 5, 0);
+	scene.add( box );
+
+	var box2 = new Physijs.BoxMesh(
+		new THREE.CubeGeometry( 4, 4, 4 ),
+		new THREE.MeshNormalMaterial(),
+		0 // mass
+	);
+	box2.position.set(0, 1, -20);
+	scene.add( box2 );
+
+
+	var ground = new Physijs.BoxMesh(
+		new THREE.CubeGeometry(1000, 1, 1000),
+		new THREE.MeshLambertMaterial({color:0x336633}),
+		0 // mass
+	);
+	ground.rotation.set( 3, 0, 0 );
+	ground.__dirtyRotation = true;
+	
+	scene.add( ground );
+
+	render();
+	function render() {
+		move();
+		scene.simulate(undefined, 2);
+		camera.lookAt( box.position );
+		renderer.render( scene, camera);
+		//stats.update();
+		requestAnimationFrame( render );
+	};
+
+
+	function move(){
+		var x = 0, z = 0;
+
+		if( moveState.front){
+			z = -1;
+		}
+		if( moveState.backwards){
+			z = 1;
+		}
+		if( moveState.left){
+			x = -1;
+		}
+		if( moveState.right){
+			x = 1;
+		}
+
+		box.setLinearVelocity(new THREE.Vector3(x * 10, 0, z * 10));
+		//box.applyCentralImpulse(new THREE.Vector3(x * 100, 0, z * 100));
+	}
+
+	window.addEventListener('keydown', function(e){
+		// left or a 
+		if(e.keyCode === 37 || e.keyCode === 65){
+			moveState.left = true;
+			moveState.right = false;
+		}// up or w
+		if(e.keyCode === 38 || e.keyCode === 87){
+			moveState.front = true;
+			moveState.backwards = false;
+		}
+		// right or d
+		if(e.keyCode === 39 || e.keyCode === 68){
+			moveState.right = true;
+			moveState.left = false;
+		}
+		// down or s
+		if(e.keyCode === 40 || e.keyCode === 83){
+			moveState.backwards = true;
+			moveState.front = false;
+		}
+		//if(!moveState.moving){
+		//	moveState.moving = true;
+		//}
+
+		//space key
+		if(e.keyCode === 32 && !moveState.jump){
+			moveState.jump = true;
+			var count = 0;
+			jump();
+		}
+
+		function jump(){
+			count++;
+			var maxCount = 60;
+			var fource = 5000 * Math.max(0, (maxCount / 2) - count);
+			console.log(fource)
+			box.applyCentralForce(new THREE.Vector3(0, fource, 0));
+			if(count < maxCount){
+				requestAnimationFrame( jump );
+			}else{
+				moveState.jump = false;
+			}
+		}
+	},false);
+
+	window.addEventListener('keyup', function(e){
+		// left or a 
+		if(e.keyCode === 37 || e.keyCode === 65){
+			moveState.left = false;
+		}// up or w
+		if(e.keyCode === 38 || e.keyCode === 87){
+			moveState.front = false;
+		}
+		// right or d
+		if(e.keyCode === 39 || e.keyCode === 68){
+			moveState.right = false;
+		}
+		// down or s
+		if(e.keyCode === 40 || e.keyCode === 83){
+			moveState.backwards = false;
+		}
+	},false);
+
+	return;
+}, false);
+
+
+</script>
+</head>
+<body>
+</body>
+</html>
