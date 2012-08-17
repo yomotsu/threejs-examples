@@ -74,7 +74,7 @@ window.addEventListener("DOMContentLoaded", function(){
 	var mesh = new THREE.Mesh(
 		new THREE.SphereGeometry( 10, 20, 20 ),
 		new THREE.MeshPhongMaterial({ map: THREE.ImageUtils.loadTexture('./dummy.png')})
-    );
+	);
 	scene.add( mesh );
 
 	// render once to enable map texture
@@ -147,28 +147,28 @@ window.addEventListener("DOMContentLoaded", function(){
 
 	function setMaterial(){
 		var params = {};
-		var text = [];
+		//var text = [];
 		for(var i in materialStatus.option ){
 			var val = materialStatus.option[i];
 			if( /^#[0-9a-fA-F]{6}$/.test( val ) ){
 				params[i] = new THREE.Color( parseInt( val.replace(/#/,'0x'), 16 ) );
-				text.push( i + ': new THREE.Color(' + parseInt( val.replace(/#/,'0x'), 16 ) + ')');
+				//text.push( i + ': new THREE.Color(' + parseInt( val.replace(/#/,'0x'), 16 ) + ')');
 			} else if( val === 'null' ){
 				params[i] = null;
-				text.push( i + ': null');
+				//text.push( i + ': null');
 			} else if(/^.\/.+\.(jpg|png)$/.test( val )){
 				params[i] = THREE.ImageUtils.loadTexture( val );
-				text.push( i + ': THREE.ImageUtils.loadTexture(' + val + ')');
+				//text.push( i + ': THREE.ImageUtils.loadTexture(' + val + ')');
 			} else {
 				params[i] = materialStatus.option[i];
-				text.push( i + ': ' + val + '');
+				//text.push( i + ': ' + val + '');
 			}
 		}
 		params.shading = THREE[params.shading];
-		console.log(mesh.material)
+		//console.log(mesh.material)
 		mesh.material = new setting.material[materialStatus.material]( params );
 
-		console.log(text)
+		//console.log(text)
 	}
 
 
