@@ -43,16 +43,6 @@ window.addEventListener("DOMContentLoaded", function(){
 
 		},
 	}
-
-	var setting = {
-		material : {
-			MeshNormalMaterial  : THREE.MeshNormalMaterial,
-			MeshBasicMaterial   : THREE.MeshBasicMaterial,
-			MeshLambertMaterial : THREE.MeshLambertMaterial,
-			MeshPhongMaterial   : THREE.MeshPhongMaterial,
-			MeshDepthMaterial   : THREE.MeshDepthMaterial,
-		}
-	}
 	
 	var width = window.innerWidth;
 	var height = window.innerHeight;
@@ -91,11 +81,14 @@ window.addEventListener("DOMContentLoaded", function(){
 	function setGUI(){
 		var gui = new dat.GUI();
 		var i, l;
-		var arr;
 
-		arr = [];
-		for(i in setting.material){ arr.push(i); }
-		gui.add( materialStatus, 'material', arr ).onChange(function(value) {
+		gui.add( materialStatus, 'material', [
+			'MeshNormalMaterial',
+			'MeshBasicMaterial',
+			'MeshLambertMaterial',
+			'MeshPhongMaterial',
+			'MeshDepthMaterial'
+		] ).onChange(function(value) {
 			setMaterial();
 		});
 
@@ -166,7 +159,7 @@ window.addEventListener("DOMContentLoaded", function(){
 		}
 		params.shading = THREE[params.shading];
 		//console.log(mesh.material)
-		mesh.material = new setting.material[materialStatus.material]( params );
+		mesh.material = new THREE[materialStatus.material]( params );
 
 		//console.log(text)
 	}
