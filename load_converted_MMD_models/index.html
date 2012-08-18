@@ -8,6 +8,7 @@ body{
 	font-family:Arial, Helvetica, sans-serif;
 	background:#333;
 }
+a{color:#fff;}
 canvas{
 	position:absolute;
 	top:0;
@@ -24,6 +25,28 @@ canvas{
 	padding:.5em 1em;
 	background:rgba(0,0,0,.6);
 }
+.copyrights{
+	color:#fff;
+	font-size: 12px;
+	text-align:right;
+	position:absolute;
+	z-index:2;
+	bottom:0;
+	right:0;
+	left:0;
+	padding:.5em 1em;
+	background:rgba(0,0,0,.6);
+}
+.copyrights ul, .copyrights li{
+	margin:0;
+	padding: 0;
+	list-style: none;
+	display: inline;
+}
+.copyrights li:not(:first-child):before{
+	content:' | ';
+}
+
 </style>
 <script src="../lib/Three_r49.js"></script>
 <script src="ColladaLoader.js"></script>
@@ -140,7 +163,12 @@ window.addEventListener('DOMContentLoaded', (function(){
 	<button onclick="loadModel('model_miku_diva/diva_miku_ver105_kai.dae')">miku_diva</button>
 	<button onclick="loadModel('model_usausa/usausa_106.dae')">usausa</button>
 	<button onclick="loadModel('model_bunny/bunny.dae')">bunny</button>
-	
+</div>
+<div class="copyrights">
+	<ul>
+		<li><a href="http://3xma.blog49.fc2.com/blog-entry-1.html">miku_diva &copy 3xma</a></li>
+		<li><a href="http://www.din.or.jp/~kanikani/">usausa &copy Kanihira</a></li>
+	</ul>
 </div>
 </body>
 </html>
