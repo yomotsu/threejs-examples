@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>json model</title>
+<style>
+body{
+	margin:0;
+	padding:0;
+	overflow:hidden;
+	background:#333;
+}
+</style>
+<script src="../lib/three_r50.min.js"></script>
+<script>
+window.addEventListener('DOMContentLoaded', (function(){
+ 
+    var width  = window.innerWidth;
+    var height = window.innerHeight;
+ 
+    var renderer, scene, camera;
+    var theta = 0;
+ 
+    init();
+    anim();
+ 
+    //collada loader
+    var loader = new THREE.JSONLoader();
+    loader.load( 'mayantemple.js', function( geom ) {
+        var mesh = new THREE.Mesh(
+        	geom, 
+        	new THREE.MeshFaceMaterial()
+        );
+        scene.add( mesh );
+    } );
+ 
+    function init(){
+        // renderer
+        renderer = new THREE.WebGLRenderer();
+        renderer.setSize( width, height );
+        document.body.appendChild( renderer.domElement );
+        
+        // scene
+        scene = new THREE.Scene();
+ 
+        // camera
+        camera = new THREE.PerspectiveCamera( 40, width / height, 1, 1000 );
+        scene.add( camera );
+ 
+        // light
+        directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
+        directionalLight.position.z = 3;
+        scene.add( directionalLight );
+    }
+ 
+    function anim(){
+        renderer.render( scene, camera );
+        camera.position.x = 30 * Math.sin( theta * Math.PI / 360 );
+        camera.position.y = 10 * Math.sin( theta * Math.PI / 360 ) + 20;
+        camera.position.z = 30 * Math.cos( theta * Math.PI / 360 );
+        camera.lookAt( new THREE.Vector3(0, 0, 0) );
+        theta++;
+        requestAnimationFrame( anim );
+    };
+ 
+}), false);
+</script>
+</head>
+<body>
+</body>
+</html>
